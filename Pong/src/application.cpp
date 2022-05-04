@@ -22,6 +22,7 @@ struct Ball
     }
     
     void update(const sf::RectangleShape& paddle1, const sf::RectangleShape& paddle2, int w_size);
+    void reset(); 
     sf::CircleShape m_ball;
     sf::Vector2f speed;
     sf::RectangleShape m_bound; //bounding box
@@ -29,6 +30,9 @@ struct Ball
 
 };
 
+
+
+//Does the ball collide with any of the paddles?
 bool checkCollides(Ball& b, const sf::RectangleShape& paddle1, const sf::RectangleShape& paddle2, int w_size)
 {
     //Left paddle
@@ -64,7 +68,13 @@ void Ball::update(const sf::RectangleShape& paddle1, const sf::RectangleShape& p
     m_ball.setPosition(pos.x + speed.x, pos.y + speed.y);
 }
 
-
+void Ball::reset()
+{
+    m_ball.setPosition(300, 300);
+    m_bound.setPosition(300, 300);
+    speed.x = (rand() % 10) - 5;
+    speed.y = (rand() % 10) - 5;
+}
 
 
 int main()
@@ -89,22 +99,18 @@ int main()
     sf::RectangleShape board2(sf::Vector2f(len, height));
     board2.setPosition(w_size - len, 0.f);
     board2.setFillColor(sf::Color::White);
-    board1.setOutlineColor(sf::Color::Black);
-    board1.setOutlineThickness(-1.f);
+    board2.setOutlineColor(sf::Color::Black);
+    board2.setOutlineThickness(-1.f);
 
     //Ball
     srand(time(NULL));
-    std::vector<std::unique_ptr<Ball>> vballs;
-    vballs.push_back(std::make_unique<Ball>(10.f));
-
-
+    std::unique_ptr<Ball> pball = std::make_unique<Ball>(10.f);
+   
     sf::Clock clock;
     while (window.isOpen())
     {
-        for (const auto& pball : vballs)
-        {
-            pball->update(board1,board2, w_size);
-        }
+        pball->update(board1,board2, w_size);
+
 
         window.setFramerateLimit(60);
 
@@ -154,36 +160,24 @@ int main()
             if (event.type == sf::Event::Closed)
                 window.close();
 
-            if(event.type == sf::Event::KeyPressed)
-                if (event.key.code ==sf::Keyboard::Space)
+            if (event.type == sf::Event::KeyPressed)
+            {
+                if (event.key.code == sf::Keyboard::Space)
                 {
                     srand(time(NULL));
-                    vballs.pop_back();
-                    vballs.push_back(std::make_unique<Ball>(10.f));
+                    pball->reset();
                 }
                 else if (event.key.code == sf::Keyboard::E)
                 {
-                    for (const auto& pball : vballs)
-                    {
-                        pball->speed += sf::Vector2f(1.f, 1.f);
-                    }
+                    pball->speed = pball->speed * 1.2f;   
                 }
-
+            }
         }
-
-
-
-
 
         window.clear();
         window.draw(board1);
         window.draw(board2);
-        for (const auto& pball : vballs)
-        {
-            window.draw(pball->m_ball);
-            window.draw(pball->m_bound);
-        
-        }
+        window.draw(pball->m_ball);
         window.display();
     }
 

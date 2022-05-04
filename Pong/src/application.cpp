@@ -8,7 +8,7 @@
 #include "Ball.h"
 
 
-int main()
+int main()  
 {
     auto w_size{ 800 };
     sf::RenderWindow window(sf::VideoMode(w_size,w_size), "Pong");

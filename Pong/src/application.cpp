@@ -6,7 +6,7 @@
 #include <chrono>
 #include <thread>
 #include <vector>
-
+#include <string>
 
 
 struct Ball : public sf::CircleShape
@@ -34,10 +34,30 @@ void Ball::reset()
     m_speed.y = (rand() % 10) - 5;
 }
 
+
+
 int main()
 {
     auto w_size{ 800 };
     sf::RenderWindow window(sf::VideoMode(w_size,w_size), "Pong");
+
+    sf::Font font;
+    font.loadFromFile("arial.ttf");
+    sf::Text ltext;
+    sf::Text rtext;
+
+    int lscore = 0;
+    ltext.setFont(font);
+    ltext.setString(std::to_string(lscore));
+    ltext.setCharacterSize(24);
+    ltext.setFillColor(sf::Color::White);
+  
+    int rscore = 0;
+    rtext.setFont(font);
+    rtext.setString(std::to_string(rscore));
+    rtext.setCharacterSize(24);
+    rtext.setFillColor(sf::Color::White);
+    rtext.setPosition((float)w_size - 15.f, 0.f); //Move text to right of window
 
     //Dimensions of paddles
     constexpr float len{ 10.f };
@@ -83,9 +103,18 @@ int main()
             ball.m_speed.y = -ball.m_speed.y;
         }
 
-        //Rset ball if it goes out of bounds horizontally
-        if (ball.getPosition().x <0 || ball.getPosition().x + 2*ball.getRadius() > w_size)
+        //Left player score a point
+        if (ball.getPosition().x + 2 * ball.getRadius() > w_size)
         {
+            ltext.setString(std::to_string(++lscore));
+            ball.reset();
+        }
+
+        //Right player scores a point
+        if (ball.getPosition().x <0)
+        {
+            rtext.setString(std::to_string(++rscore));
+            if (rscore % 10 == 0) { rtext.move(-15.f, 0.f); } //Prevent part of score clipping outside window
             ball.reset();
         }
 
@@ -102,22 +131,22 @@ int main()
         //Player 1 movement
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) && board1.getPosition().y > 0)
         {
-            board1.setPosition(board1.getPosition() + sf::Vector2f(0.f, -paddle_speed));
+            board1.move(0.f, -paddle_speed);
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) && board1.getPosition().y + height < w_size)
         {
-            board1.setPosition(board1.getPosition() + sf::Vector2f(0.f, paddle_speed));
+            board1.move(0.f, paddle_speed);
         }
 
 
         //Player 2 movement
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && board2.getPosition().y > 0)
         {
-            board2.setPosition(board2.getPosition() + sf::Vector2f(0.f, -paddle_speed));
+            board2.move(0.f, -paddle_speed);
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) && board2.getPosition().y + height  < w_size)
         {
-            board2.setPosition(board2.getPosition() + sf::Vector2f(0.f, paddle_speed));
+            board2.move(0.f, paddle_speed);
         }
 
         sf::Event event;
@@ -138,6 +167,8 @@ int main()
         window.draw(ball);
         window.draw(board1);
         window.draw(board2);
+        window.draw(ltext);
+        window.draw(rtext);
         window.display();
     }
 

@@ -1,11 +1,8 @@
 #include <SFML/Graphics.hpp>
 
-#include <memory>
+
 #include <stdlib.h>
 #include <iostream>
-#include <chrono>
-#include <thread>
-#include <vector>
 #include <string>
 
 #include "Ball.h"

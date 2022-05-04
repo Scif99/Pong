@@ -8,32 +8,7 @@
 #include <vector>
 #include <string>
 
-
-struct Ball : public sf::CircleShape
-{
-    Ball(float radius)
-        : sf::CircleShape{ radius } //Call constructor for sf::CircleShape
-    {
-        setPosition(300, 300);
-        setFillColor(sf::Color::White);
-        setOutlineColor(sf::Color::Black);
-        setOutlineThickness(-1.f);
-        m_speed.x = (rand() % 10) -5;
-        m_speed.y = (rand() % 10) -5;
-    }
-    void update() { setPosition(getPosition().x + m_speed.x, getPosition().y + m_speed.y); }
-    void reset();
-    sf::Vector2f m_speed;
-};
-
-//Reset ball to start position
-void Ball::reset()
-{
-    setPosition(300, 300);
-    m_speed.x = (rand() % 10) - 5;
-    m_speed.y = (rand() % 10) - 5;
-}
-
+#include "Ball.h"
 
 
 int main()
@@ -61,7 +36,7 @@ int main()
 
     //Dimensions of paddles
     constexpr float len{ 10.f };
-    constexpr float height{60.f};
+    constexpr float height{80.f};
     constexpr float paddle_speed{ 10.f };
 
     //Left paddle
@@ -79,8 +54,6 @@ int main()
     srand(time(NULL));
     Ball ball{ 10.f };
    
-    //Initialise clock
-    sf::Clock clock;
 
     while (window.isOpen())
     {
@@ -94,7 +67,7 @@ int main()
         //Check collisions with paddles
         if (ballBox.intersects(lPaddleBox) || ballBox.intersects(rPaddleBox)) //Note that we check top left corner of paddle
         {
-            ball.m_speed.x = -ball.m_speed.x;
+            ball.m_speed.x = -(1.2f)*ball.m_speed.x;
         }
 
         //Vertical collisions
@@ -116,14 +89,6 @@ int main()
             rtext.setString(std::to_string(++rscore));
             if (rscore % 10 == 0) { rtext.move(-15.f, 0.f); } //Prevent part of score clipping outside window
             ball.reset();
-        }
-
-        //Increase speed of ball every 5 seconds
-        auto x = clock.getElapsedTime().asSeconds();
-        if (x >= 5)
-        {
-            ball.m_speed *= 1.2f;
-            clock.restart();
         }
 
         ball.update();

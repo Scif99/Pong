@@ -9,83 +9,40 @@
 
 
 
-struct Ball
+struct Ball : public sf::CircleShape
 {
     Ball(float radius)
-        :m_ball{ sf::CircleShape(radius) }, m_bound{sf::RectangleShape(sf::Vector2f(2*radius,2*radius))}
+        : sf::CircleShape{ radius } //Call constructor for sf::CircleShape
     {
-        m_ball.setPosition(300, 300);
-        m_bound.setPosition(300, 300);
-        m_bound.setOutlineColor(sf::Color::Red);
-        speed.x = (rand() % 10) -5;
-        speed.y = (rand() % 10) -5;
+        setPosition(300, 300);
+        setFillColor(sf::Color::White);
+        setOutlineColor(sf::Color::Black);
+        setOutlineThickness(-1.f);
+        m_speed.x = (rand() % 10) -5;
+        m_speed.y = (rand() % 10) -5;
     }
-    
-    void update(const sf::RectangleShape& paddle1, const sf::RectangleShape& paddle2, int w_size);
-    void reset(); 
-    sf::CircleShape m_ball;
-    sf::Vector2f speed;
-    sf::RectangleShape m_bound; //bounding box
-
-
+    void update() { setPosition(getPosition().x + m_speed.x, getPosition().y + m_speed.y); }
+    void reset();
+    sf::Vector2f m_speed;
 };
 
-
-
-//Does the ball collide with any of the paddles?
-bool checkCollides(Ball& b, const sf::RectangleShape& paddle1, const sf::RectangleShape& paddle2, int w_size)
-{
-    //Left paddle
-    if (b.m_bound.getPosition().x < paddle1.getPosition().x + paddle1.getSize().x
-        && b.m_bound.getPosition().y + b.m_bound.getSize().y > paddle1.getPosition().y
-        && b.m_bound.getPosition().y < paddle1.getPosition().y + paddle1.getSize().y)
-        return true;
-
-    else if (b.m_bound.getPosition().x + b.m_bound.getSize().x > paddle2.getPosition().x
-        && b.m_bound.getPosition().y + b.m_bound.getSize().y > paddle2.getPosition().y
-        && b.m_bound.getPosition().y < paddle2.getPosition().y + paddle2.getSize().y)
-        return true;
-
-    else return false;
-
-}
-
-void Ball::update(const sf::RectangleShape& paddle1, const sf::RectangleShape& paddle2, int w_size)
-{
-    auto pos = m_bound.getPosition();
-
-    //Vertical collisions
-    if (pos.y < 0 || pos.y + m_bound.getSize().y> w_size)
-    {
-        speed.y = -speed.y;
-    }
-
-    //Horizontal collisions
-    if (checkCollides(*this, paddle1, paddle2, w_size)) speed.x = -speed.x;
-
-
-    m_bound.setPosition(pos.x + speed.x, pos.y + speed.y);
-    m_ball.setPosition(pos.x + speed.x, pos.y + speed.y);
-}
-
+//Reset ball to start position
 void Ball::reset()
 {
-    m_ball.setPosition(300, 300);
-    m_bound.setPosition(300, 300);
-    speed.x = (rand() % 10) - 5;
-    speed.y = (rand() % 10) - 5;
+    setPosition(300, 300);
+    m_speed.x = (rand() % 10) - 5;
+    m_speed.y = (rand() % 10) - 5;
 }
-
 
 int main()
 {
-    constexpr int w_size{ 800 };
+    auto w_size{ 800 };
     sf::RenderWindow window(sf::VideoMode(w_size,w_size), "Pong");
 
     //Dimensions of paddles
-    float  len{ 10.f };
-    float height{60.f};
-    float paddle_speed = 10.f;
+    constexpr float len{ 10.f };
+    constexpr float height{60.f};
+    constexpr float paddle_speed{ 10.f };
 
     //Left paddle
     sf::RectangleShape board1(sf::Vector2f(len, height));
@@ -94,64 +51,73 @@ int main()
     board1.setOutlineColor(sf::Color::Black);
     board1.setOutlineThickness(-1.f);
 
-
     //Right paddle
-    sf::RectangleShape board2(sf::Vector2f(len, height));
-    board2.setPosition(w_size - len, 0.f);
-    board2.setFillColor(sf::Color::White);
-    board2.setOutlineColor(sf::Color::Black);
-    board2.setOutlineThickness(-1.f);
+    sf::RectangleShape board2(board1);
+    board2.setPosition((float)w_size - len, 0.f);
 
     //Ball
     srand(time(NULL));
-    std::unique_ptr<Ball> pball = std::make_unique<Ball>(10.f);
+    Ball ball{ 10.f };
    
+    //Initialise clock
     sf::Clock clock;
+
     while (window.isOpen())
     {
-        pball->update(board1,board2, w_size);
+        window.setFramerateLimit(60); //Cap at 60fps
 
 
-        window.setFramerateLimit(60);
+        auto ballBox = ball.getGlobalBounds();
+        auto lPaddleBox= board1.getGlobalBounds();
+        auto rPaddleBox = board2.getGlobalBounds();
 
-        clock.restart();
-        //Player 1 movement
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+        //Check collisions with paddles
+        if (ballBox.intersects(lPaddleBox) || ballBox.intersects(rPaddleBox)) //Note that we check top left corner of paddle
         {
-            auto pos = board1.getPosition();
-            if (pos.y> 0)
-            {
-                board1.setPosition(pos + sf::Vector2f(0.f, -paddle_speed));
-            }
+            ball.m_speed.x = -ball.m_speed.x;
         }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+
+        //Vertical collisions
+        if (ball.getPosition().y < 0.f || ball.getPosition().y + 2*ball.getRadius() > w_size)
         {
-            auto pos = board1.getPosition();
-            if (pos.y  + height< w_size)
-            {
-                board1.setPosition(pos + sf::Vector2f(0.f, paddle_speed));
-            }
-           
+            ball.m_speed.y = -ball.m_speed.y;
+        }
+
+        //Rset ball if it goes out of bounds horizontally
+        if (ball.getPosition().x <0 || ball.getPosition().x + 2*ball.getRadius() > w_size)
+        {
+            ball.reset();
+        }
+
+        //Increase speed of ball every 5 seconds
+        auto x = clock.getElapsedTime().asSeconds();
+        if (x >= 5)
+        {
+            ball.m_speed *= 1.2f;
+            clock.restart();
+        }
+
+        ball.update();
+
+        //Player 1 movement
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) && board1.getPosition().y > 0)
+        {
+            board1.setPosition(board1.getPosition() + sf::Vector2f(0.f, -paddle_speed));
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) && board1.getPosition().y + height < w_size)
+        {
+            board1.setPosition(board1.getPosition() + sf::Vector2f(0.f, paddle_speed));
         }
 
 
         //Player 2 movement
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && board2.getPosition().y > 0)
         {
-            auto pos = board2.getPosition();
-            if (pos.y > 0)
-            {
-                board2.setPosition(pos + sf::Vector2f(0.f, -paddle_speed));
-            }
+            board2.setPosition(board2.getPosition() + sf::Vector2f(0.f, -paddle_speed));
         }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) && board2.getPosition().y + height  < w_size)
         {
-            auto pos = board2.getPosition();
-            if (pos.y + height < w_size)
-            {
-                board2.setPosition(pos + sf::Vector2f(0.f, paddle_speed));
-            }
-
+            board2.setPosition(board2.getPosition() + sf::Vector2f(0.f, paddle_speed));
         }
 
         sf::Event event;
@@ -160,24 +126,18 @@ int main()
             if (event.type == sf::Event::Closed)
                 window.close();
 
-            if (event.type == sf::Event::KeyPressed)
+            //Press space to manually reset
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space)
             {
-                if (event.key.code == sf::Keyboard::Space)
-                {
-                    srand(time(NULL));
-                    pball->reset();
-                }
-                else if (event.key.code == sf::Keyboard::E)
-                {
-                    pball->speed = pball->speed * 1.2f;   
-                }
+                srand(time(NULL));
+                ball.reset();
             }
         }
 
         window.clear();
+        window.draw(ball);
         window.draw(board1);
         window.draw(board2);
-        window.draw(pball->m_ball);
         window.display();
     }
 

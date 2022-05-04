@@ -13,7 +13,7 @@ struct Ball : public sf::CircleShape
         m_speed.x = (rand() % 10) - 5;
         m_speed.y = (rand() % 10) - 5;
     }
-    void update() { setPosition(getPosition().x + m_speed.x, getPosition().y + m_speed.y); }
+
     void reset();
     sf::Vector2f m_speed;
 };

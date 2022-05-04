@@ -158,7 +158,9 @@
     <ClCompile Include="src\application.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Ball.h" />
+    <ClInclude Include="src\ball.h" />
+    <ClInclude Include="src\paddle.h" />
+    <ClInclude Include="src\score.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

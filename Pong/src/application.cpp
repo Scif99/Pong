@@ -10,22 +10,25 @@
 #include "score.h"
 
 
+
+
 int main()  
 {
-    sf::RenderWindow window(sf::VideoMode(800,800), "Pong");
+    sf::RenderWindow window(sf::VideoMode(800,500), "Pong");
 
     sf::Font font;
     font.loadFromFile("arial.ttf");
     Score lscore(font);
     Score rscore(font);
-    rscore.setPosition((float)window.getSize().x - 15.f, 0.f); //Move text to right of window
+    lscore.setPosition((float)window.getSize().x/2 - 30.f, 0.f); //Move text to right of window
+    rscore.setPosition((float)window.getSize().x/2 + 10.f, 0.f); //Move text to right of window
 
-    Paddle lpaddle( sf::Vector2f(10.f,80.f ),0.f,0.f);
-    Paddle rpaddle(sf::Vector2f(10.f, 80.f), window.getSize().x - 10.f, 0.f);
+    Paddle lpaddle( sf::Vector2f(20.f,80.f ),20.f,0.f);
+    Paddle rpaddle(sf::Vector2f(20.f, 80.f), window.getSize().x - 2*20.f, 0.f);
 
     //Ball
     srand(time(NULL));
-    Ball ball{ 10.f };
+    Ball ball{ 10.f, window };
    
 
     while (window.isOpen())
@@ -36,7 +39,48 @@ int main()
         if (ball.getGlobalBounds().intersects(lpaddle.getGlobalBounds()) 
             || ball.getGlobalBounds().intersects(rpaddle.getGlobalBounds()))
         {
-            ball.m_speed.x = -(1.2f)*ball.m_speed.x;
+            auto centre_y_ball = ball.getPosition().y + ball.getRadius(); //y coordinate of centre of ball
+
+            //get y coordinate of the centre of the paddle hit.
+            auto centre_y_pad = ball.getGlobalBounds().intersects(lpaddle.getGlobalBounds()) ?
+                lpaddle.getPosition().y + lpaddle.getSize().y / 2 : rpaddle.getPosition().y + rpaddle.getSize().y / 2;
+
+            auto d = centre_y_pad - centre_y_ball;
+            auto scale = lpaddle.getSize().y / 2;
+            auto v = std::fabs(d) / scale; //New speed scales depending on y-distance between ball and paddle
+
+            ball.m_speed.x *= -(1.2f); //X speed increased by fixed amount each hit
+
+            if (ball.m_speed.y >= 0)
+            {
+                if (d < 0)
+                {
+                    ball.m_speed.y += (2 * v) + 2.f; //Case 1
+                }
+
+                if (d > 0)
+                {
+                    ball.m_speed.y = -ball.m_speed.y - 2.f ; //Case 4
+
+                }
+                
+            }
+
+            else if (ball.m_speed.y < 0)
+            {
+                if (d < 0)
+                {
+                    ball.m_speed.y = -ball.m_speed.y  + 2.f; //Case 3
+                }
+
+                if (d > 0)
+                {
+                    ball.m_speed.y -= (2 * v); //Case 2
+                }
+            }
+
+
+
         }
 
         //Vertical collisions
@@ -49,7 +93,7 @@ int main()
         if (ball.getPosition().x + 2 * ball.getRadius() > window.getSize().x)
         {
             lscore.addPoint();
-            ball.reset();
+            ball.reset(0);
         }
 
         //Right player scores a point
@@ -57,12 +101,13 @@ int main()
         {
             rscore.addPoint();
             if (rscore.points % 10 == 0) { rscore.move(-15.f, 0.f); } //Prevent part of score clipping outside window
-            ball.reset();
+            ball.reset(1);
         }
 
         //Update game objects
         ball.setPosition(ball.getPosition().x + ball.m_speed.x, ball.getPosition().y + ball.m_speed.y);
 
+        //Left Paddle
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) && lpaddle.getPosition().y > 0)
         {
             lpaddle.move(0.f, -lpaddle.speed);
@@ -70,6 +115,16 @@ int main()
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) && lpaddle.getPosition().y + lpaddle.getSize().y < window.getSize().y)
         {
             lpaddle.move(0.f, lpaddle.speed);
+        }
+
+        //Right Paddle
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && rpaddle.getPosition().y > 0)
+        {
+            rpaddle.move(0.f, -rpaddle.speed);
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) && rpaddle.getPosition().y + rpaddle.getSize().y < window.getSize().y)
+        {
+            rpaddle.move(0.f, rpaddle.speed);
         }
 
         //Events
@@ -80,10 +135,10 @@ int main()
                 window.close();
 
             //Press space to manually reset
-            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space)
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape)
             {
-                srand(time(NULL));
-                ball.reset();
+
+                window.close();
             }
         }
 

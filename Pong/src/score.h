@@ -8,7 +8,7 @@ struct Score : sf::Text
 	{
 		setFont(f);
 		setString(std::to_string(points));
-		setCharacterSize(24);
+		setCharacterSize(40);
 		setFillColor(sf::Color::White);
 	}
 

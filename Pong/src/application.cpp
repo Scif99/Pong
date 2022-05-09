@@ -1,7 +1,6 @@
 #include <SFML/Graphics.hpp>
 
 
-#include <stdlib.h>
 #include <iostream>
 #include <string>
 
@@ -27,7 +26,6 @@ int main()
     Paddle rpaddle(sf::Vector2f(20.f, 80.f), window.getSize().x - 2*20.f, 0.f);
 
     //Ball
-    srand(time(NULL));
     Ball ball{ 10.f, window };
    
 
@@ -49,7 +47,7 @@ int main()
             auto scale = lpaddle.getSize().y / 2;
             auto v = std::fabs(d) / scale; //New speed scales depending on y-distance between ball and paddle
 
-            ball.m_speed.x *= -(1.2f); //X speed increased by fixed amount each hit
+            ball.m_speed.x *= -(1.1f); //X speed increased by fixed amount each hit
 
             if (ball.m_speed.y >= 0)
             {
@@ -75,7 +73,7 @@ int main()
 
                 if (d > 0)
                 {
-                    ball.m_speed.y -= (2 * v); //Case 2
+                    ball.m_speed.y -= (2 * v) -2.f; //Case 2
                 }
             }
 

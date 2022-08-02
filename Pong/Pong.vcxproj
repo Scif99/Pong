@@ -155,13 +155,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\application.cpp" />
-    <ClCompile Include="src\game.h" />
+    <ClCompile Include="src\ball.cpp" />
+    <ClCompile Include="src\client.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\paddle.cpp" />
+    <ClCompile Include="src\server.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ball.h" />
+    <ClInclude Include="src\client.h" />
     <ClInclude Include="src\paddle.h" />
-    <ClInclude Include="src\score.h" />
+    <ClInclude Include="src\server.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

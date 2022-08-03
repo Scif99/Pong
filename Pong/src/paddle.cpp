@@ -13,22 +13,22 @@ Paddle::Paddle(float x, float y, Side side)
 }
 
 
-void Paddle::HandleInput(const sf::RenderWindow& window)
-{
-	//Get correct key codes
-	sf::Keyboard::Key up_key = m_side_ == Paddle::Side::LEFT ? sf::Keyboard::W : sf::Keyboard::Up;
-	sf::Keyboard::Key down_key = m_side_ == Paddle::Side::LEFT ? sf::Keyboard::S : sf::Keyboard::Down;
-
-	if (sf::Keyboard::isKeyPressed(up_key) && m_shape_.getPosition().y - m_shape_.getSize().y / 2 > 0)
-	{
-		m_velocity_.y = -10.f;
-	}
-	else if (sf::Keyboard::isKeyPressed(down_key) && m_shape_.getPosition().y + m_shape_.getSize().y / 2 < window.getSize().y)
-	{
-		m_velocity_.y = 10.f;
-	}
-	else { m_velocity_.y = 0.f; }
-}
+//void Paddle::HandleInput(const sf::RenderWindow& window)
+//{
+//	//Get correct key codes
+//	sf::Keyboard::Key up_key = m_side_ == Paddle::Side::LEFT ? sf::Keyboard::W : sf::Keyboard::Up;
+//	sf::Keyboard::Key down_key = m_side_ == Paddle::Side::LEFT ? sf::Keyboard::S : sf::Keyboard::Down;
+//
+//	if (sf::Keyboard::isKeyPressed(up_key) && m_shape_.getPosition().y - m_shape_.getSize().y / 2 > 0)
+//	{
+//		m_velocity_.y = -10.f;
+//	}
+//	else if (sf::Keyboard::isKeyPressed(down_key) && m_shape_.getPosition().y + m_shape_.getSize().y / 2 < window.getSize().y)
+//	{
+//		m_velocity_.y = 10.f;
+//	}
+//	else { m_velocity_.y = 0.f; }
+//}
 
 
 

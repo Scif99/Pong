@@ -1,9 +1,9 @@
+
 #include "client.h"
 #include <iostream>
-#include <SFML/Graphics.hpp>
+
 
 constexpr unsigned short port{ 50001 };
-
 void Client::run()
 {
 	// Ask for the server address
@@ -11,22 +11,37 @@ void Client::run()
 	std::cout << "Type the address of the server to connect to: ";
 	std::cin >> server;
 
-	// Connect to server
+	//Store username
+	std::cout << "Please enter a username: ";
+	std::string name;
+	std::cin >> name;
+	m_name_ = name;
 
+	// Connect to server
 	std::cout << "connecting...\n";
 	if (m_socket_.connect(server, port) != sf::Socket::Done)
 	{
 		std::cout << "Error: couldn't connect to server\n";
 	}
 	std::cout << "connected!\n";
+	std::cout << "Waiting...\n";
+
+	//The server will send a packet to notify the client that the game is ready to begin
+	sf::Packet ready;
+	if (m_socket_.receive(ready) != sf::Socket::Done)
+	{
+		std::cout << "Error\n";
+	}
+
 	m_connected_ = true;
+	m_window_.create(sf::VideoMode(800, 500), "Pong"); //Only create window once the game is ready to start
 
 	while (m_connected_)
 	{
+		draw();
 		sendInput();
 		receiveState(); //receive
-		handleEvents(r_window_);
-		draw();
+		handleEvents();
 	}
 
 }
@@ -34,11 +49,11 @@ void Client::run()
 void Client::sendInput()
 {
 	int dir{ 0 };
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
 	{
 		dir = -1;
 	}
-	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
 	{
 		dir = 1;
 	}
@@ -52,24 +67,29 @@ void Client::sendInput()
 void Client::receiveState()
 {
 	sf::Packet state;
-	m_socket_.receive(state);
-	float bx, by,px,py;
-	state >> bx >> by>>px>>py;
+	if (m_socket_.receive(state) == sf::Socket::Disconnected)
+	{
+		std::cout << "Error: Server has ended\n";
+		m_socket_.disconnect();
+		return;
+	}
+	float bx, by,lpx,lpy,rpx,rpy;
+	state >> bx >> by>>lpx>>lpy>>rpx>>rpy;
 	m_ball_.setPosition(bx, by);
-	m_paddle_.setPosition(px, py);
-
+	m_leftpaddle_.setPosition(lpx, lpy);
+	m_rightpaddle_.setPosition(rpx, rpy);
 
 }
 
 
-void Client::handleEvents(sf::RenderWindow& window)
+void Client::handleEvents()
 {
 	sf::Event event;
-	while (window.pollEvent(event))
+	while (m_window_.pollEvent(event))
 	{
 		if(event.type == sf::Event::Closed)
 		{
-			window.close();
+			m_window_.close();
 			m_socket_.disconnect();
 		}
 	}
@@ -77,9 +97,11 @@ void Client::handleEvents(sf::RenderWindow& window)
 
 void Client::draw()
 {
-	r_window_.clear();
+	m_window_.clear();
 
-	m_ball_.draw(r_window_);
-	m_paddle_.draw(r_window_);
-	r_window_.display();
+	m_ball_.draw(m_window_);
+	m_leftpaddle_.draw(m_window_);
+	m_rightpaddle_.draw(m_window_);
+	//m_name_.draw(m_window_);
+	m_window_.display();
 }

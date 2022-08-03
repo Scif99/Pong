@@ -1,16 +1,18 @@
 #pragma once
 #include <SFML/Network.hpp>
+
+#include "common.h"
 #include "ball.h"
 #include "paddle.h"
-
 
 
 class Client
 {
 public:
-	Client(sf::RenderWindow& window)
-		: r_window_{ window }, m_ball_{ window.getSize().x / 2, window.getSize().y / 2 },
-		m_paddle_{ 40.f, 0.f, Paddle::Side::LEFT } {}
+	Client()
+		: m_ball_{ WIN_WIDTH / 2, WIN_HEIGHT / 2 },
+		m_leftpaddle_{ 40.f, 0.f, Paddle::Side::LEFT },
+		m_rightpaddle_{ WIN_HEIGHT - 20.f, 0.f, Paddle::Side::RIGHT}{}
 	~Client() {};
 
 
@@ -18,13 +20,15 @@ public:
 	void receiveState();
 	void draw();
 	void sendInput();
-	void handleEvents(sf::RenderWindow& window);
+	void handleEvents();
 
 private:
+	sf::RenderWindow m_window_;
 	sf::TcpSocket m_socket_;
+	std::string m_name_;
 	Ball m_ball_;
-	Paddle m_paddle_;
-	sf::RenderWindow& r_window_;
+	Paddle m_leftpaddle_;
+	Paddle m_rightpaddle_;
 	bool m_connected_{false};
 };
 

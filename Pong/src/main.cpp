@@ -1,16 +1,11 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Network.hpp>
 
-
 #include <iostream>
 #include <string>
 
-#include "ball.h"
-#include "paddle.h"
 #include "client.h"
 #include "server.h"
-
-
 
 
 int main()
@@ -35,8 +30,7 @@ int main()
     }
     else
     {
-        sf::RenderWindow window(sf::VideoMode(800, 500), "Pong"); //Only client needs a window.
-        Client client(window);
+        Client client;
         client.run();
     }
 
